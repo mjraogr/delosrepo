@@ -1,0 +1,4 @@
+#!/system/bin/sh
+for FILE in /system/etc/init.d/*; do 
+  sh $FILE
+done

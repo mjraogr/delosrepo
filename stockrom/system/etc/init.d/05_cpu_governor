@@ -1,0 +1,48 @@
+#!/system/bin/sh (DNS S4503 BY WERITOS)
+
+set_min_fred=3200000
+set_max_fred=1209000
+
+MIN_FRED=/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+MAX_FRED=/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+GOVERNOR=/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+CPU1_ONLINE=/sys/devices/system/cpu/cpu1/online
+
+chmod 666 $GOVERNOR
+chmod 666 $MAX_FRED
+chmod 666 $MIN_FRED
+chmod 666 $CPU1_ONLINE
+
+for i in `ls /sys/block/mmcblk*` /sys/block/mmcblk0; do 
+echo "noop" > "$i/queue/scheduler";
+done
+
+echo -n SmartassH3 > $GOVERNOR;
+#echo -n 1 > /data/local/cpu;
+echo set_min_fred > $MIN_FRED;
+echo set_max_fred > $MAX_FRED;
+
+set_max_fred=1209000
+(while true; do
+is_idle=`cat /data/local/cpu`;	
+if [ $is_idle = 1 ];
+ then
+  STATUS=`cat /sys/power/wait_for_fb_sleep`;
+  if [ $STATUS = "sleeping" ]; then
+    echo -n 0 > /data/local/cpu;   
+    echo -n 0 > $CPU1_ONLINE;
+    sleep 2;
+    echo set_max_fred > $MAX_FRED;
+    echo -n powersave > $GOVERNOR;
+  fi;
+else
+  STATUS=`cat /sys/power/wait_for_fb_wake`;	
+  if [ $STATUS = "awake" ]; then
+    echo -n 1 > /data/local/cpu;      
+    echo -n 1 > $CPU1_ONLINE;
+    echo -n SmartassH3 > $GOVERNOR; 
+  fi;
+fi;
+sleep 3;
+done &)
+
